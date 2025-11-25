@@ -1,0 +1,5 @@
+{
+  "name": "DeepRead 深度阅读",
+  "description": "深度文章分析工具，支持即刻、公众号等链接。提取精华、绘制思维导图、提供反方观点及相关见解。",
+  "requestFramePermissions": []
+}
