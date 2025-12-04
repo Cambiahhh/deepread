@@ -60,7 +60,7 @@ const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading }) => {
                         type="url"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="在此粘贴文章链接 (如即刻、公众号...)"
+                        placeholder="在此粘贴文章链接..."
                         className="w-full pl-12 pr-4 py-4 outline-none text-slate-800 placeholder-slate-300 text-lg bg-transparent font-medium"
                         required={mode === 'url'}
                     />
