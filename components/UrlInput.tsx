@@ -5,9 +5,10 @@ interface UrlInputProps {
   onAnalyze: (input: string, type: 'url' | 'text') => void;
   isLoading: boolean;
   hasUserKey: boolean;
+  activeModelName?: string;
 }
 
-const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading, hasUserKey }) => {
+const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading, hasUserKey, activeModelName }) => {
   const [mode, setMode] = useState<'url' | 'text'>('url');
   const [input, setInput] = useState('');
 
@@ -17,6 +18,8 @@ const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading, hasUserKey })
       onAnalyze(input.trim(), mode);
     }
   };
+
+  const displayModelName = activeModelName || (hasUserKey ? "Gemini Pro" : "Gemini 2.5 Flash");
 
   return (
     <div className="w-full max-w-3xl mx-auto my-12 md:my-20 px-4 relative z-10">
@@ -107,7 +110,7 @@ const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading, hasUserKey })
         {hasUserKey ? (
             <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 rounded-full border border-amber-100 text-amber-700 backdrop-blur-sm animate-in fade-in">
                 <Zap size={14} className="text-amber-500 fill-amber-500"/> 
-                Model: Gemini 2.0 Pro (Max)
+                Model: {displayModelName}
             </span>
         ) : (
             <span className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-slate-100 backdrop-blur-sm text-slate-400">

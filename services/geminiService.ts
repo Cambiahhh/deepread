@@ -4,9 +4,10 @@ import { AnalysisResponse, AnalysisResult } from "../types";
 // 默认兜底 Key (使用 Flash 模型)
 const DEFAULT_API_KEY = "AIzaSyAiZ0hgaX70s8EnsYI7p58-ZOjY32BIbac";
 
-// Helper: Determine configuration based on key availability
+// Helper: Determine configuration based on key availability and preference
 const getAIConfig = () => {
   const userKey = localStorage.getItem('deepread_user_api_key');
+  const userModelPref = localStorage.getItem('deepread_user_model_preference');
   
   // 策略：优先用用户Key，没有则用系统环境变量，最后用硬编码的默认Key
   const apiKey = userKey || process.env.API_KEY || DEFAULT_API_KEY;
@@ -14,8 +15,12 @@ const getAIConfig = () => {
   // 只有明确设置了本地 Key 才视为“自定义/高级”模式
   const isUserCustom = !!userKey;
 
-  // 如果是用户自定义Key，使用更强的 Pro 模型；否则使用基础的 Flash 模型
-  const modelName = isUserCustom ? "gemini-3-pro-preview" : "gemini-2.5-flash";
+  let modelName = "gemini-2.5-flash"; // 默认/未登录状态使用基础版
+
+  if (isUserCustom) {
+      // 如果用户有Key，优先使用用户选择的模型，默认回退到 Pro 2.5
+      modelName = userModelPref || "gemini-2.5-pro";
+  }
 
   return {
     client: new GoogleGenAI({ apiKey }),

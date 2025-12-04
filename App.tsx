@@ -28,12 +28,23 @@ const App: React.FC = () => {
   
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [hasUserKey, setHasUserKey] = useState(false);
+  const [activeModelName, setActiveModelName] = useState<string>('');
   const resultRef = useRef<HTMLDivElement>(null);
 
-  // Check for user key on mount
-  useEffect(() => {
+  // Check for user key and model pref on mount and updates
+  const updateSettings = () => {
     const key = localStorage.getItem('deepread_user_api_key');
+    const pref = localStorage.getItem('deepread_user_model_preference');
     setHasUserKey(!!key);
+    if (key) {
+        setActiveModelName(pref || 'Gemini 2.0 Pro (Exp)');
+    } else {
+        setActiveModelName('');
+    }
+  };
+
+  useEffect(() => {
+    updateSettings();
   }, []);
 
   // History State
@@ -145,7 +156,12 @@ const App: React.FC = () => {
       
       <main className="container mx-auto px-4 md:px-6 relative z-0">
         <div className="transition-all duration-700 ease-out">
-            <UrlInput onAnalyze={handleAnalyze} isLoading={loading} hasUserKey={hasUserKey} />
+            <UrlInput 
+                onAnalyze={handleAnalyze} 
+                isLoading={loading} 
+                hasUserKey={hasUserKey} 
+                activeModelName={activeModelName}
+            />
         </div>
 
         {error && (
@@ -211,7 +227,9 @@ const App: React.FC = () => {
       <ApiKeyModal 
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
-        onKeyChange={setHasUserKey}
+        onKeyChange={(hasKey) => {
+            updateSettings();
+        }}
       />
       
       <style>{`
