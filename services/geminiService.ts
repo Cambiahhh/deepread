@@ -1,27 +1,37 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisResponse, AnalysisResult } from "../types";
 
-// Helper to dynamically get the client
-const getAIClient = () => {
+// 默认兜底 Key (使用 Flash 模型)
+const DEFAULT_API_KEY = "AIzaSyAiZ0hgaX70s8EnsYI7p58-ZOjY32BIbac";
+
+// Helper: Determine configuration based on key availability
+const getAIConfig = () => {
   const userKey = localStorage.getItem('deepread_user_api_key');
-  // Use user key if available, otherwise fallback to system key (if configured in env)
-  const apiKey = userKey || process.env.API_KEY;
+  
+  // 策略：优先用用户Key，没有则用系统环境变量，最后用硬编码的默认Key
+  const apiKey = userKey || process.env.API_KEY || DEFAULT_API_KEY;
+  
+  // 只有明确设置了本地 Key 才视为“自定义/高级”模式
+  const isUserCustom = !!userKey;
 
-  if (!apiKey) {
-    throw new Error("未检测到有效 API Key。请点击右上角钥匙图标配置您的 Gemini API Key。");
-  }
+  // 如果是用户自定义Key，使用更强的 Pro 模型；否则使用基础的 Flash 模型
+  const modelName = isUserCustom ? "gemini-3-pro-preview" : "gemini-2.5-flash";
 
-  return new GoogleGenAI({ apiKey });
+  return {
+    client: new GoogleGenAI({ apiKey }),
+    modelName,
+    isPro: isUserCustom
+  };
 };
 
 export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'): Promise<AnalysisResponse> => {
-  const ai = getAIClient();
+  const { client, modelName } = getAIConfig();
+  
   let prompt = "";
 
   if (type === 'url') {
     prompt = `
       You are an expert Content Analyst AI.
-      
       Task: Analyze the content associated with this URL: ${input}
 
       **CRITICAL INSTRUCTION FOR URLS:**
@@ -82,9 +92,8 @@ export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'
   }
 
   try {
-    // Use the experimental pro model for better reasoning
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", 
+    const response = await client.models.generateContent({
+      model: modelName, 
       contents: prompt,
       config: config,
     });

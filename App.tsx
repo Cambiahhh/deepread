@@ -145,7 +145,7 @@ const App: React.FC = () => {
       
       <main className="container mx-auto px-4 md:px-6 relative z-0">
         <div className="transition-all duration-700 ease-out">
-            <UrlInput onAnalyze={handleAnalyze} isLoading={loading} />
+            <UrlInput onAnalyze={handleAnalyze} isLoading={loading} hasUserKey={hasUserKey} />
         </div>
 
         {error && (

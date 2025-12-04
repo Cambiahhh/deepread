@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowRight, Link2, Search, Loader2, FileText, AlignLeft } from 'lucide-react';
+import { ArrowRight, Link2, Search, Loader2, FileText, AlignLeft, Zap } from 'lucide-react';
 
 interface UrlInputProps {
   onAnalyze: (input: string, type: 'url' | 'text') => void;
   isLoading: boolean;
+  hasUserKey: boolean;
 }
 
-const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading }) => {
+const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading, hasUserKey }) => {
   const [mode, setMode] = useState<'url' | 'text'>('url');
   const [input, setInput] = useState('');
 
@@ -97,15 +98,23 @@ const UrlInput: React.FC<UrlInputProps> = ({ onAnalyze, isLoading }) => {
           </form>
       </div>
 
-      <div className="mt-8 flex justify-center gap-6 text-xs md:text-sm text-slate-400 font-medium">
-        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-slate-100 backdrop-blur-sm">
+      <div className="mt-8 flex justify-center gap-4 md:gap-6 text-xs md:text-sm font-medium flex-wrap">
+        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-slate-100 backdrop-blur-sm text-slate-400">
             <Search size={14} className="text-indigo-500"/> 
             Google Search Grounding
         </span>
-        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-slate-100 backdrop-blur-sm">
-            <FileText size={14} className="text-emerald-500"/> 
-            Gemini 2.5 Flash
-        </span>
+        
+        {hasUserKey ? (
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 rounded-full border border-amber-100 text-amber-700 backdrop-blur-sm animate-in fade-in">
+                <Zap size={14} className="text-amber-500 fill-amber-500"/> 
+                Model: Gemini 2.0 Pro (Max)
+            </span>
+        ) : (
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-white/50 rounded-full border border-slate-100 backdrop-blur-sm text-slate-400">
+                <FileText size={14} className="text-slate-400"/> 
+                Model: Gemini 2.5 Flash
+            </span>
+        )}
       </div>
     </div>
   );
