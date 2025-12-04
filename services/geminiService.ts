@@ -84,7 +84,7 @@ export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'
   try {
     // Use the experimental pro model for better reasoning
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-pro-exp-02-05", 
+      model: "gemini-2.5-flash", 
       contents: prompt,
       config: config,
     });
