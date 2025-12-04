@@ -8,6 +8,7 @@ import WritingAnalysisCard from './components/WritingAnalysisCard';
 import GroundingSources from './components/GroundingSources';
 import ShareModal from './components/ShareModal';
 import HistoryDrawer from './components/HistoryDrawer';
+import ApiKeyModal from './components/ApiKeyModal';
 import { analyzeContent } from './services/geminiService';
 import { AnalysisResult, GroundingSource, HistoryItem } from './types';
 import { AlertTriangle } from 'lucide-react';
@@ -19,10 +20,21 @@ const App: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [groundingSources, setGroundingSources] = useState<GroundingSource[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal States
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+  const [hasUserKey, setHasUserKey] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  // Check for user key on mount
+  useEffect(() => {
+    const key = localStorage.getItem('deepread_user_api_key');
+    setHasUserKey(!!key);
+  }, []);
 
   // History State
   const [history, setHistory] = useState<HistoryItem[]>(() => {
@@ -125,8 +137,10 @@ const App: React.FC = () => {
 
       <Header 
         hasResult={!!result} 
+        hasUserKey={hasUserKey}
         onShareClick={() => setIsShareModalOpen(true)} 
         onHistoryClick={() => setIsHistoryOpen(true)}
+        onApiKeyClick={() => setIsApiKeyModalOpen(true)}
       />
       
       <main className="container mx-auto px-4 md:px-6 relative z-0">
@@ -192,6 +206,12 @@ const App: React.FC = () => {
         onSelect={handleHistorySelect}
         onDelete={deleteHistoryItem}
         onClearAll={clearHistory}
+      />
+
+      <ApiKeyModal 
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
+        onKeyChange={setHasUserKey}
       />
       
       <style>{`

@@ -1,9 +1,21 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisResponse, AnalysisResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to dynamically get the client
+const getAIClient = () => {
+  const userKey = localStorage.getItem('deepread_user_api_key');
+  // Use user key if available, otherwise fallback to system key (if configured in env)
+  const apiKey = userKey || process.env.API_KEY;
+
+  if (!apiKey) {
+    throw new Error("未检测到有效 API Key。请点击右上角钥匙图标配置您的 Gemini API Key。");
+  }
+
+  return new GoogleGenAI({ apiKey });
+};
 
 export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'): Promise<AnalysisResponse> => {
+  const ai = getAIClient();
   let prompt = "";
 
   if (type === 'url') {
@@ -61,22 +73,18 @@ export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'
     }
   `;
 
-  // CRITICAL FIX: 
-  // API throws error if 'tools' (googleSearch) and 'responseMimeType: application/json' are used together.
-  // We must split the config logic.
   const config: any = {};
   
   if (type === 'url') {
     config.tools = [{ googleSearch: {} }];
-    // DO NOT set responseMimeType here, or it will crash.
   } else {
-    // For text mode, we don't need search, so we can enforce JSON strictly.
     config.responseMimeType = "application/json";
   }
 
   try {
+    // Use the experimental pro model for better reasoning
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-pro-exp-02-05", 
       contents: prompt,
       config: config,
     });
@@ -88,13 +96,9 @@ export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'
 
     let data: AnalysisResult;
     try {
-      // Robust cleaning logic is essential because URL mode cannot use responseMimeType: json
       let cleanedText = text.trim();
-      
-      // Remove markdown code blocks if present (common in search responses)
       cleanedText = cleanedText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
       
-      // Extract JSON object if surrounded by conversational text
       const firstOpen = cleanedText.indexOf('{');
       const lastClose = cleanedText.lastIndexOf('}');
       if (firstOpen !== -1 && lastClose !== -1) {
@@ -104,16 +108,18 @@ export const analyzeContent = async (input: string, type: 'url' | 'text' = 'url'
       data = JSON.parse(cleanedText);
     } catch (e) {
       console.error("JSON Parse Error", e);
-      console.log("Raw text:", text);
-      throw new Error("解析结果格式异常，建议尝试直接粘贴文本内容。");
+      throw new Error("解析结果格式异常，请确保输入内容有效。");
     }
 
     return {
       data,
       groundingChunks: groundingChunks as any[],
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
+    if (error.message?.includes('API key') || error.message?.includes('403')) {
+        throw new Error("API Key 无效或额度不足，请检查设置。");
+    }
     throw error;
   }
 };
